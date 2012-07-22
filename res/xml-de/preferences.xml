@@ -11,7 +11,7 @@
         android:showDefault="true" 
         android:ringtoneType="alarm" 
         android:showSilent="false" 
-        android:summary="Wähle deinen Lieblingsalarmton für wenn deinen Kaffee fertig ist." 
+        android:summary="Wähle deinen Lieblings-Alarmton für wenn dein Kaffee fertig ist." 
         android:title="Alarmton" 
         android:key="noise"/>
 </PreferenceScreen>
