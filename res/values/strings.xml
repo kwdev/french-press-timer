@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+	<string name="license_title">License \u0026 Copyright</string>
+	<string name="license_ok">OK</string>
+	<string name="license_done">Done</string>
+	<string name="gpl_title">GNU General Public License</string>
+			
+	<string name="license_copy">French Press Timer Copyright \u00A9 2012 Kari Wilhelm</string>
+	<string name="license_warranty">This program comes with ABSOLUTELY NO WARRANTY according to the GNU General Public License</string>
+	<string name="license_info">See \u0022About this App\u0022 in the menu for details. Happy coffee brewing!</string>
+			
+
+	<string name="preferences_button_text">Settings</string>
+	<string name="about_text">About this App</string>
+	<string name="app_name">French Press Timer</string>
+	<string name="french_press_image">French press image</string>
+	<string name="timer_done_text">Time to Press!</string>
+	<string name="start_timer">Start</string>
+	<string name="stop_timer">Cancel</string>
+
+	<string name="about_title">About this App: French Press Timer</string>
+	<string name="about_done">Done</string>
+	<string name="about_read">Read license</string>
+	<string name="about_version">Version</string>
+	<string name="about_copyright">Copyright</string>	
+</resources>

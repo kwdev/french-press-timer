@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.kari.frenchpress"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+    <uses-sdk android:minSdkVersion="10" />
+ 	<uses-permission android:name="android.permission.WAKE_LOCK"></uses-permission>    
+ 	
+    <application
+        android:icon="@drawable/ic_launcher_frenchpress"
+        android:label="@string/app_name" >
+        <activity
+            android:name="com.kari.frenchpress.FrenchPressTimerActivity"
+            android:label="@string/app_name"
+            android:launchMode="singleTask" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name="AlarmActivity"></activity>
+        <activity android:name="LicenseActivity" android:configChanges="orientation"></activity>
+        <activity android:name=".SettingsActivity"></activity>
+        <service android:name="TimerService"></service>
+        <receiver android:name="AlarmBroadcastReciever"></receiver>
+        
+    </application>
+
+</manifest>

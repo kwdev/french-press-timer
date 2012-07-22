@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@drawable/alarmback"
+    android:orientation="vertical" 
+    android:onClick="stopTheNoise">
+
+    <ImageView
+        android:id="@+id/imageView1"
+        android:contentDescription="@string/french_press_image"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="2.47"
+        android:src="@drawable/frenchpress_full" />
+
+    <Button
+        android:id="@+id/button"
+        android:onClick="stopTheNoise"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:background="@drawable/pink_button"
+        android:text="@string/timer_done_text" />
+
+</LinearLayout>
