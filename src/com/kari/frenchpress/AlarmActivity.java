@@ -57,12 +57,24 @@ public class AlarmActivity extends Activity {
 		setContentView(R.layout.alarm);
 		
 		// make this Activity display over the lock screen
-		getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
-
-		startTheNoise();
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED|
+			WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD|
+	        WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON|
+	        WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON );
 	}
 	
 	
+	
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+
+		startTheNoise();
+	}
+
+
+
 	public void startTheNoise() {
 		
 		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
