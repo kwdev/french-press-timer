@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with French Press Timer.  If not, see <http://www.gnu.org/licenses/>.
  *  
- */ 
+ */
 
 package com.kari.frenchpress;
 
@@ -45,27 +45,22 @@ public class FrenchPressTimerActivity extends Activity {
 
 	// handler - for showing clock ticks and stopping the timer display
 	Handler handler = new Handler();
-	
-	// ticker - runnable that keeps the clock ticking and updates the display
-	private Runnable ticker;
-	
-	// stopper - runnable that stops this activity when the time is up
-	private Runnable stopper;
 
-	
+	// ticker - runnable that keeps the clock ticking and updates the display until the time is up
+	private Runnable ticker;
+
 	private Button startButton;
 	private TextView clockText;
-	
-	long timerEndTime = 0;
-	long timerStartTime;
+
+	long timerEndUptime = 0;
+	long timerEndRealtime = 0;
+
 	int brewTime;
-
-
 
 	private OnClickListener buttonListener = new OnClickListener() {
 		public void onClick(View v) {
-			if (timerEndTime == 0) {
-				
+			if (timerEndUptime == 0) {
+
 				// Start timer
 				updateBrewTime(getBrewTime());
 				startTimer(brewTime);
@@ -80,28 +75,30 @@ public class FrenchPressTimerActivity extends Activity {
 		}
 	};
 
-
-	
-	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.main);
 
-		preferences = PreferenceManager.getDefaultSharedPreferences(FrenchPressTimerActivity.this);	
-		
+		// in case the value has been given by service
+
+		if (getIntent() != null && getIntent().getExtras() != null) {
+			timerEndRealtime = getIntent().getExtras().getLong(
+					"endTimeRealtime", timerEndRealtime);
+		}
+
+		preferences = PreferenceManager
+				.getDefaultSharedPreferences(FrenchPressTimerActivity.this);
+
 		clockText = (TextView) findViewById(R.id.clock_text);
 		startButton = (Button) findViewById(R.id.button);
 		startButton.setOnClickListener(buttonListener);
 
-		
 		updateBrewTime(getBrewTime());
-		
+
 		LicenseNotice.check(this);
 	}
-
-
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -110,213 +107,209 @@ public class FrenchPressTimerActivity extends Activity {
 		return true;
 	}
 
-
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		
+
 		switch (item.getItemId()) {
-		
-			case R.id.preferences:
+
+		case R.id.preferences:
 
 			startActivity(new Intent(this, SettingsActivity.class));
 
 			break;
-			
-			
-			case R.id.about:
+
+		case R.id.about:
 
 			this.showAboutDialog();
-				
+
 			break;
 
 		}
 		return true;
 	}
-	
-	
 
 	public void onSaveInstanceState(Bundle savedInstanceState) {
 
-		// save what's important - when the timer stops
-		savedInstanceState.putLong("timerStartTime", timerStartTime);
-		savedInstanceState.putLong("timerEndTime", timerEndTime);
+		// save values if timer is running
+		if (timerEndUptime != 0) {
+			savedInstanceState.putLong("timerEndRealtime", timerEndRealtime);
+		}
 
 		super.onSaveInstanceState(savedInstanceState);
 	}
-
 
 	public void onRestoreInstanceState(Bundle savedInstanceState) {
 		super.onRestoreInstanceState(savedInstanceState);
 
 		updateBrewTime(getBrewTime());
 
-		// restart ticker if it was running
-		timerStartTime = savedInstanceState.getLong("timerStartTime");
-		timerEndTime = savedInstanceState.getLong("timerEndTime");
-		
-		if (timerEndTime != 0) {
-			ticker = new TimerTicker();
-			handler.post(ticker);
-			startButton.setText(R.string.stop_timer);
-		}
-	
+		timerEndRealtime = savedInstanceState.getLong("timerEndRealtime");
 	}
 
-	
+	@Override
+	protected void onPause() {
+		super.onPause();
+
+		if (ticker != null) {
+			handler.removeCallbacks(ticker);
+		}
+	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
-		
+
 		// If the brew time has changed the preferences were changed
-		
+
 		int newBrewTime = getBrewTime();
-		
-		if (brewTime != newBrewTime)
-		{
+
+		if (brewTime != newBrewTime) {
 			stopTimer();
-			
+
 			updateBrewTime(newBrewTime);
 		}
 		
-	}
+		// See if there is a countdown to resume
 
+		long resumeTime = SystemClock.elapsedRealtime();
+
+		if (timerEndRealtime != 0) {
+
+			long timeLeft = timerEndRealtime - resumeTime;
+
+			timerEndUptime = System.currentTimeMillis() + timeLeft;
+
+			if (timeLeft > 0) {
+				timerEndUptime = SystemClock.uptimeMillis() + timeLeft;
+
+				ticker = new TimerTicker();
+
+				handler.post(ticker);
+
+				startButton.setText(R.string.stop_timer);
+
+			} else {
+				this.finish();
+			}
+		}
+
+	}
 
 	private void startTimer(int timerLengthSeconds) {
 		
-		// get the current time - using both of these formats like this is precise enough for this application
-		
-		// required format for the alarm parameter
-		long utcTime = SystemClock.elapsedRealtime();
-		
-		// required format for notifications
-		timerStartTime = SystemClock.uptimeMillis();
-		
-		timerEndTime = timerStartTime + timerLengthSeconds * 1000;
-		
+		long startRealtime = SystemClock.elapsedRealtime();
+		long startUptime = SystemClock.uptimeMillis();
+
+		timerEndRealtime = startRealtime + (timerLengthSeconds * 1000);
+		timerEndUptime = startUptime + (timerLengthSeconds * 1000);
 
 		ticker = new TimerTicker();
-		stopper = new TimerEndpoint();
+		handler.postAtTime(ticker, startUptime + 1000);
 
-		handler.postAtTime(stopper, timerEndTime);
-		handler.postAtTime(ticker, timerStartTime + 1000);
-
-		Intent intent = new Intent(FrenchPressTimerActivity.this, TimerService.class);
-		intent.putExtra("startTimeUptimeMilis", timerStartTime);
-		intent.putExtra("endTimeUptimeMilis", timerEndTime);
-		intent.putExtra("endTimeRealtime", utcTime+ timerLengthSeconds * 1000);
+		Intent intent = new Intent(FrenchPressTimerActivity.this,TimerService.class);
+		intent.putExtra("endTimeRealtime", timerEndRealtime);
 
 		startService(intent);
 
 	}
-	
 
 	private void updateBrewTime(int newBrewTime) {
 		brewTime = newBrewTime;
-		clockText.setText(TimeFormatter.format((long)brewTime));
+		clockText.setText(TimeUtil.format((long) brewTime));
 	}
-	
-	
+
 	private int getBrewTime() {
-		 int newBT = Integer.valueOf(preferences.getString("brewTime", "4"));
-		 
-		 newBT = newBT * 60;
-		 
+		int newBT = Integer.valueOf(preferences.getString("brewTime", "4"));
+
+		newBT = newBT * 60;
+		// newBT = newBT + 20;
+
 		return newBT;
 	}
 
-	
 	private void stopTimer() {
-		Intent intent = new Intent(FrenchPressTimerActivity.this, TimerService.class);
+		Intent intent = new Intent(FrenchPressTimerActivity.this,TimerService.class);
 		stopService(intent);
 
 		handler.removeCallbacks(ticker);
-		handler.removeCallbacks(stopper);	
-		
-		timerEndTime = 0;
+
+		timerEndUptime = 0;
+		timerEndRealtime = 0;
 		startButton.setText(R.string.start_timer);
 	}
-	
-	
+
 	private void showAboutDialog() {
-		
+
 		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		
+
 		final Activity activity = this;
-		
+
 		builder.setTitle(R.string.about_title);
-		
+
 		builder.setCancelable(true);
-		
-		builder.setPositiveButton(R.string.about_done, new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				
-				
-			}
-		});
-		
-		builder.setNegativeButton(R.string.about_read, new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				//LicenseNotice.showLicenseNotice(activity);
-				
-				Intent intent = new Intent(activity, LicenseActivity.class);
-				startActivity(intent);
-				
-			}
-		});
-		
+
+		builder.setPositiveButton(R.string.about_done,
+				new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+
+					}
+				});
+
+		builder.setNegativeButton(R.string.about_read,
+				new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						Intent intent = new Intent(activity,
+								LicenseActivity.class);
+						startActivity(intent);
+
+					}
+				});
 
 		// Construct about dialog content
 		String version = "";
-		
-		
+
 		try {
-			PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+			PackageInfo packageInfo = getPackageManager().getPackageInfo(
+					getPackageName(), 0);
 			version = packageInfo.versionName;
-			
+
 		} catch (NameNotFoundException e) {
-			// well nothing to really do here, if it didn't work we can't show it
+			// well nothing to really do here, if it didn't work we can't show
+			// it
 		}
-		
+
 		StringBuilder content = new StringBuilder();
-		
+
 		content.append(getString(R.string.about_version)).append(": ").append(version).append("\n\n");
 		content.append(getString(R.string.about_copyright)).append(" \u00A9 ").append("2012 Kari Wilhelm");
-	
 
 		builder.setMessage(content);
-		builder.create().show();		
+		builder.create().show();
 	}
-	
-	
-	
+
 	private class TimerTicker implements Runnable {
 
 		@Override
 		public void run() {
+			
+			long timeLeft = timerEndRealtime - SystemClock.elapsedRealtime();
+			
 			long now = SystemClock.uptimeMillis();
 
-			long secs = (timerEndTime - now) / 1000;
-
-			clockText.setText(TimeFormatter.format(secs));
+			long secs = timeLeft / 1000;			
+			
+			clockText.setText(TimeUtil.format(secs));
 
 			if (secs > 0) {
 				handler.postAtTime(this, now + 1000);
+			}
+			else {
+				finish();
 			}
 
 		}
 	}
 
-	private class TimerEndpoint implements Runnable {
-
-		@Override
-		public void run() {
-
-			finish(); // don't need ya anymore, coffee is done!!
-
-		}
-
-	}
 }

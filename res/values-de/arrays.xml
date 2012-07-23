@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="minutes">
+        <item>2</item>
+        <item>3</item>
         <item>4</item>
-        <item>5</item>
-        <item>6</item>
+		<item>5</item>        
     </string-array>
     
     <string-array name="minutesDisplay">
+        <item>2 Minuten</item>
+        <item>3 Minuten</item>
         <item>4 Minuten</item>
         <item>5 Minuten</item>
-        <item>6 Minuten</item>
     </string-array>
     
     

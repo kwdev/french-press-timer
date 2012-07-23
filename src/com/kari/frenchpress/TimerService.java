@@ -42,10 +42,8 @@ import android.os.SystemClock;
 public class TimerService extends Service {
 
 	
-	long timerEndTime = 0;
+	long timerEndRealtime = 0;
 	
-	long timerStartTime;
-
 	
 	private NotificationManager notificationManager;	
 	
@@ -55,7 +53,9 @@ public class TimerService extends Service {
 	
 	private PendingIntent alarmIntent;
 	
-	private PendingIntent activityIntent;
+	private PendingIntent notificationIntent;
+	
+	private boolean stopTimerOnDestroy = true;
 
 
 	// Unique notification number
@@ -65,31 +65,30 @@ public class TimerService extends Service {
 	
 	private Handler handler = new Handler();
 	
-	
-	private Runnable serviceStopper = new Runnable() {
-		public void run() {
-			// Timer's done, stop this service...
-			//Log.i("TimerService", "Stopping timer service");
-			stopSelf();
-		}
-	};
-			
 			
 	private Runnable notificationUpdater = new Runnable() {
 		@Override
 		public void run() {
+
+			long timeLeft = timerEndRealtime - SystemClock.elapsedRealtime();
+			
 			long now = SystemClock.uptimeMillis();
 
-			long secs = (timerEndTime - now) / 1000;
+			long secs = timeLeft / 1000;
 
-			String timeString = TimeFormatter.format(secs);
+			String timeString = TimeUtil.format(secs);
 			
-			notification.setLatestEventInfo(TimerService.this, "French Press Timer", timeString, activityIntent);
+			notification.setLatestEventInfo(TimerService.this, "French Press Timer", timeString, notificationIntent);
 			notificationManager.notify(NOTIFICATION, notification);	
 
 			if (secs > 0) {
 				handler.postAtTime(this, now + 1000);
-			}				
+			}	
+			else {
+				stopTimerOnDestroy = false;
+				
+				stopSelf();
+			}
 			
 		}
 	
@@ -105,37 +104,34 @@ public class TimerService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
  
-    	timerEndTime = intent.getExtras().getLong("endTimeUptimeMilis");
-       	timerStartTime = intent.getExtras().getLong("startTimeUptimeMilis");
-        		
-    	
-    	// Stop this service when time's up
-		handler.postAtTime(serviceStopper, timerEndTime);
-		
+    	timerEndRealtime = intent.getExtras().getLong("endTimeRealtime");
 		
 		// Set up the notification
-	    notification = new Notification(R.drawable.frenchpress_notification, getString(R.string.app_name) , 0); //System.currentTimeMillis());
+    	
+	    notification = new Notification(R.drawable.frenchpress_notification, getString(R.string.app_name) , 0);
 	    
-	    activityIntent = PendingIntent.getActivity(this, 0, new Intent(this, FrenchPressTimerActivity.class), 0);
+	    Intent activityIntent = new Intent(this, FrenchPressTimerActivity.class);
+	    activityIntent.putExtra("endTimeRealtime", timerEndRealtime);
 	    
-	    notification.setLatestEventInfo(this, getString(R.string.app_name), "", activityIntent);
+	    notificationIntent = PendingIntent.getActivity(this, 0, activityIntent, 0);
+	  
+	    notification.setLatestEventInfo(this, getString(R.string.app_name), "", notificationIntent);
 	    notification.flags |= Notification.FLAG_ONGOING_EVENT;
 	    notification.flags |= Notification.FLAG_NO_CLEAR;
 	    
 	    notificationManager.notify(NOTIFICATION, notification);		
 	        
+	    
 	    // Set up notification updates
-		handler.postAtTime(notificationUpdater, timerStartTime + 1000); 
+	    
+		handler.post(notificationUpdater); 
 	    
 		
 		// Setup alarm
-		long endTime = intent.getExtras().getLong("endTimeRealtime");
 		
 		alarmIntent = PendingIntent.getBroadcast(this.getApplicationContext(), 123, new Intent(this, AlarmBroadcastReciever.class), 0);
-		
     	alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-		
-		alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, endTime, alarmIntent);
+		alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, timerEndRealtime, alarmIntent);
 		
 		
         return START_STICKY;
@@ -147,10 +143,11 @@ public class TimerService extends Service {
     public void onDestroy() {
     	
     	// cancel the alarm
-    	alarmManager.cancel(alarmIntent);
+    	if (stopTimerOnDestroy) {
+    		alarmManager.cancel(alarmIntent);
+    	}
     	
     	// empty the Handler queue
-    	handler.removeCallbacks(serviceStopper);
     	handler.removeCallbacks(notificationUpdater);
  
     	// cancel the notification.
