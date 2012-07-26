@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+    <ListPreference 
+      	android:title="Tiempo de reposo"
+		android:summary="Esta configuración te permite seleccionar el tiempo de reposo que prefieres para tu café."
+        android:key="brewTime"
+        android:defaultValue="4"
+        android:entries="@array/minutesDisplay" 
+        android:entryValues="@array/minutes"/>
+    <RingtonePreference 
+        android:showDefault="true" 
+        android:ringtoneType="alarm" 
+        android:showSilent="false" 
+        android:summary="Selecciona tu alarma preferida para indicar que el café está listo." 
+        android:title="Alarma" 
+        android:key="noise"/>
+</PreferenceScreen>

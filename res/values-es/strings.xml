@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+	<string name="license_title">Licencia \u0026 Copyright</string>
+	<string name="license_ok">OK</string>
+	<string name="license_done">Listo</string>
+	
+	
+	<string name="license_copy">French Press Timer Copyright \u00A9 2012 Kari Wilhelm</string>
+	<string name="license_warranty">This program comes with ABSOLUTELY NO WARRANTY according to the GNU General Public License.</string>
+	<string name="license_info">Véase \u0022Sobre esta aplicación\u0022 en el menú para detalles. ¡Que te diviertas!</string>
+		
+	
+	<string name="preferences_button_text">Configuraciones</string>
+	<string name="about_text">Sobre esta aplicación</string>
+	<string name="app_name">Temporizador para prensa francesa</string>
+	<string name="french_press_image">Gráfico de prensa francesa</string>
+	<string name="timer_done_text">¡Es tiempo para apretar!</string>
+	<string name="start_timer">Iniciar</string>
+	<string name="stop_timer">Desactivar</string>
+
+	<string name="about_title">Sobre esta aplicación: Temporizador para prensa francesa</string>
+	<string name="about_done">Listo</string>
+	<string name="about_read">Leer licencia</string>
+	<string name="about_version">Versión</string>
+	<string name="about_copyright">Copyright</string>
+	
+
+</resources>

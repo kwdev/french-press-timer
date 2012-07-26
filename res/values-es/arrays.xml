@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="minutes">
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+		<item>5</item>        
+    </string-array>
+    
+    <string-array name="minutesDisplay">
+        <item>2 minutos</item>
+        <item>3 minutos</item>
+        <item>4 minutos</item>
+        <item>5 minutos</item>
+    </string-array>
+    
+    
+</resources>

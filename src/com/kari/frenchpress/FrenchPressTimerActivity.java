@@ -36,6 +36,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -78,7 +79,9 @@ public class FrenchPressTimerActivity extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
+		
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		
 		setContentView(R.layout.main);
 
 		// in case the value has been given by service
@@ -86,6 +89,10 @@ public class FrenchPressTimerActivity extends Activity {
 		if (getIntent() != null && getIntent().getExtras() != null) {
 			timerEndRealtime = getIntent().getExtras().getLong(
 					"endTimeRealtime", timerEndRealtime);
+			
+			if (timerEndRealtime < SystemClock.elapsedRealtime()) {
+				timerEndRealtime = 0;
+			}
 		}
 
 		preferences = PreferenceManager
